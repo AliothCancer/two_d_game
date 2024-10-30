@@ -1,5 +1,5 @@
 mod player;
-mod physics;
+mod physic_mesh_bundle;
 
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
@@ -11,6 +11,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+        .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(CameraPlugin)
         .add_plugins(PlayerPlugin)
         .add_systems(Startup, spawn_world)
@@ -33,8 +34,7 @@ fn spawn_world(
     // terrain collision
     commands
         .spawn(Collider::cuboid(500.0, 50.0))
-        .insert(TransformBundle::from(Transform::from_xyz(0.0, -100.0, 0.0)))
-        .insert(bundle)
+        .insert(TransformBundle::from(Transform::from_xyz(0.0, -100.0, 0.0)));
     
 }
 

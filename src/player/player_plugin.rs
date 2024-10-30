@@ -1,5 +1,6 @@
-use bevy::{math, prelude::*, sprite::MaterialMesh2dBundle};
-use bevy_rapier2d::prelude::*;
+use bevy::prelude::*;
+
+use crate::physic_mesh_bundle::PhysicMeshBundle;
 
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
@@ -9,36 +10,28 @@ impl Plugin for PlayerPlugin {
     }
 }
 
+#[derive(Bundle)]
+pub struct PlayerBundle {
+    player: Player,
+    physic: PhysicMeshBundle,
+}
+
 /// Player movement speed factor.
 const PLAYER_SPEED: f32 = 200.;
 
 #[derive(Component, Clone, Copy)]
-pub struct Player {
-    radius: f32,
-}
+pub struct Player;
 
 pub fn spawn_player(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let player = Player { radius: 25. };
-    commands
-        .spawn((
-            player,
-            RigidBody::Dynamic,
-            MaterialMesh2dBundle {
-                mesh: meshes.add(Circle::new(player.radius)).into(),
-                material: materials.add(Color::srgb(6.25, 9.4, 9.1)), // RGB values exceed 1 to achieve a bright color for the bloom effect
-                transform: Transform {
-                    translation: math::vec3(0., 0., 2.),
-                    ..default()
-                },
-                ..default()
-            },
-        ))
-        .insert(Restitution::coefficient(0.7))
-        .insert(Collider::ball(player.radius));
+    let player_bundle = PlayerBundle {
+        player: Player,
+        physic: PhysicMeshBundle::dynamic_circle(25., meshes, materials),
+    };
+    commands.spawn(player_bundle);
 }
 
 /// Update the player position with keyboard inputs.
