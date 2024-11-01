@@ -1,5 +1,7 @@
-use bevy::prelude::*;
-use bevy_rapier2d::prelude::{AdditionalMassProperties, ColliderMassProperties, ExternalForce, Velocity};
+use bevy::{math::VectorSpace, prelude::*};
+use bevy_rapier2d::prelude::{
+    AdditionalMassProperties, ColliderMassProperties, ExternalForce, Velocity,
+};
 
 use crate::physic_mesh_bundle::PhysicMeshBundle;
 
@@ -18,7 +20,8 @@ pub struct PlayerBundle {
 }
 
 /// Player movement speed factor.
-const PLAYER_SPEED: f32 = 200.;
+const PLAYER_ACCELERATION: f32 = 10.;
+const PLAYER_MAX_SPEED: f32 = 300.;
 
 #[derive(Component, Clone, Copy)]
 pub struct Player;
@@ -32,50 +35,50 @@ pub fn spawn_player(
         player: Player,
         physic: PhysicMeshBundle::dynamic_circle(25., meshes, materials),
     };
-    commands.spawn(player_bundle)
-    //.insert(ColliderMassProperties::Density(2.0))
-    .insert(AdditionalMassProperties::Mass(2.0))
-    .insert(Velocity {
-        linvel: Vec2::new(0.0, 0.0),
-        angvel: 0.0,
-    });
-
+    commands
+        .spawn(player_bundle)
+        //.insert(ColliderMassProperties::Density(2.0))
+        .insert(AdditionalMassProperties::Mass(2.0))
+        .insert(Velocity {
+            linvel: Vec2::new(0.0, 0.0),
+            angvel: 0.0,
+        });
 }
 
 /// Update the player position with keyboard inputs.
 pub fn move_player(
-    mut player: Query<&mut Transform, With<Player>>,
+    //mut player: Query<&mut Transform, With<Player>>,
     mut velocity: Query<&mut Velocity, With<Player>>,
     //mut grav_scale: Query<&mut GravityScale>,
-    time: Res<Time>,
-    kb_input: Res<ButtonInput<KeyCode>>
+    //time: Res<Time>,
+    kb_input: Res<ButtonInput<KeyCode>>,
 ) {
-    let Ok(mut player) = player.get_single_mut() else {
-        return;
-    };
-    let mut direction = Vec2::ZERO;
+    //let mut direction = Vec2::ZERO;
+    let mut velocity = velocity.single_mut();
 
     if kb_input.pressed(KeyCode::Space) {
         //direction.y += 1.;
-        let mut velocity = velocity.single_mut();
-        velocity.linvel += Vec2::new(0.0, 20.0);
-        dbg!(velocity.linvel);
+        velocity.linvel += Vec2::new(0.0, PLAYER_ACCELERATION * 2.);
+        //dbg!(velocity.linvel);
     }
     if kb_input.pressed(KeyCode::KeyS) {
-        direction.y -= 1.;
+        velocity.linvel += Vec2::new(0.0, -PLAYER_ACCELERATION);
     }
 
     if kb_input.pressed(KeyCode::KeyA) {
-        direction.x -= 1.;
+        velocity.linvel += Vec2::new(-PLAYER_ACCELERATION, 0.0);
     }
 
     if kb_input.pressed(KeyCode::KeyD) {
-        direction.x += 1.;
+        velocity.linvel += Vec2::new(PLAYER_ACCELERATION, 0.0);
     }
 
-    // Progressively update the player's position over time. Normalize the
-    // direction vector to prevent it from exceeding a magnitude of 1 when
-    // moving diagonally.
-    let move_delta = direction.normalize_or_zero() * PLAYER_SPEED * time.delta_seconds();
-    player.translation += move_delta.extend(0.);
+    let speed_mod = velocity.linvel.distance(Vec2::ZERO);
+    dbg!(speed_mod);
+    if let (true, Some(vel)) = (
+        speed_mod > PLAYER_MAX_SPEED,
+        velocity.linvel.try_normalize(),
+    ) {
+        velocity.linvel = vel * PLAYER_MAX_SPEED;
+    }
 }
