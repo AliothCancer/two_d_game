@@ -3,7 +3,7 @@ use bevy::core_pipeline::bloom::BloomSettings;
 
 use super::player_plugin::Player;
 /// Camera lerp factor.
-const CAM_LERP_FACTOR: f32 = 1.;
+const CAM_LERP_FACTOR: f32 = 10.7;
 
 
 pub struct CameraPlugin; 

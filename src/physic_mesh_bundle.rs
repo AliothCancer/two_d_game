@@ -4,6 +4,7 @@ use bevy_rapier2d::prelude::*;
 #[derive(Bundle)]
 pub struct PhysicMeshBundle {
     rigid_body: RigidBody,
+    force: ExternalForce,
     material_mesh: MaterialMesh2dBundle<ColorMaterial>,
     collider: Collider,
     restitution: Restitution,
@@ -29,6 +30,7 @@ impl PhysicMeshBundle {
 
         PhysicMeshBundle {
             rigid_body: RigidBody::Dynamic,
+            force: ExternalForce{ force: Vec2::new(0.0, -200.0), torque: 0. },
             material_mesh,
             collider,
             restitution,

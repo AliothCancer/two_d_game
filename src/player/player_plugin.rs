@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::{AdditionalMassProperties, ColliderMassProperties, ExternalForce, Velocity};
 
 use crate::physic_mesh_bundle::PhysicMeshBundle;
 
@@ -31,15 +32,23 @@ pub fn spawn_player(
         player: Player,
         physic: PhysicMeshBundle::dynamic_circle(25., meshes, materials),
     };
-    commands.spawn(player_bundle);
+    commands.spawn(player_bundle)
+    //.insert(ColliderMassProperties::Density(2.0))
+    .insert(AdditionalMassProperties::Mass(2.0))
+    .insert(Velocity {
+        linvel: Vec2::new(0.0, 0.0),
+        angvel: 0.0,
+    });
+
 }
 
 /// Update the player position with keyboard inputs.
 pub fn move_player(
     mut player: Query<&mut Transform, With<Player>>,
+    mut velocity: Query<&mut Velocity, With<Player>>,
     //mut grav_scale: Query<&mut GravityScale>,
     time: Res<Time>,
-    kb_input: Res<ButtonInput<KeyCode>>,
+    kb_input: Res<ButtonInput<KeyCode>>
 ) {
     let Ok(mut player) = player.get_single_mut() else {
         return;
@@ -47,10 +56,11 @@ pub fn move_player(
     let mut direction = Vec2::ZERO;
 
     if kb_input.pressed(KeyCode::Space) {
-        direction.y += 1.;
-        //grav_scale.single_mut().0 = 0.1;
+        //direction.y += 1.;
+        let mut velocity = velocity.single_mut();
+        velocity.linvel += Vec2::new(0.0, 20.0);
+        dbg!(velocity.linvel);
     }
-
     if kb_input.pressed(KeyCode::KeyS) {
         direction.y -= 1.;
     }
